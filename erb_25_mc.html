@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERB 物理治療助理基礎證書 - 持續評估筆試仿真系統</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#0d9488',
+              600: '#0f766e',
+              700: '#115e59',
+              900: '#134e4a',
+            },
+            navy: {
+              800: '#1e293b',
+              900: '#0f172a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- 頂部導航列 (Header) -->
+  <header class="bg-navy-900 text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- 標題與標籤 -->
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xl shadow">
+            PT
+          </div>
+          <div>
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              ERB 物理治療助理 
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">持續評估筆試</span>
+            </h1>
+            <p class="text-xs text-slate-400">總分 25 分 (25條MC) • 及格線 12.5 分 • 建議時限 30 分鐘</p>
+          </div>
+        </div>
+
+        <!-- 模式切換、計時器、快速筆記按鈕 -->
+        <div class="flex items-center flex-wrap gap-2.5">
+          <!-- 模式切換 -->
+          <div class="bg-slate-800 p-0.5 rounded-lg flex items-center border border-slate-700 text-xs font-medium">
+            <button id="modeExamBtn" onclick="switchMode('exam')" class="px-3 py-1.5 rounded-md transition duration-150 bg-teal-600 text-white shadow-sm">
+              模擬考試
+            </button>
+            <button id="modePracticeBtn" onclick="switchMode('practice')" class="px-3 py-1.5 rounded-md transition duration-150 text-slate-300 hover:text-white">
+              即時刷題
+            </button>
+          </div>
+
+          <!-- 計時器 -->
+          <div class="flex items-center bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg text-xs font-mono">
+            <svg class="w-4 h-4 text-teal-400 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span id="timerText" class="text-sm font-semibold tracking-wider text-slate-100">30:00</span>
+            <button onclick="toggleTimer()" id="timerToggleBtn" class="ml-2 text-slate-400 hover:text-white" title="暫停/繼續計時">
+              ⏸️
+            </button>
+          </div>
+
+          <!-- 常考速查筆記按鈕 -->
+          <button onclick="toggleCheatsheet(true)" class="inline-flex items-center bg-slate-800 hover:bg-slate-700 border border-slate-700 text-teal-300 px-2.5 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
+            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            必背考點速查
+          </button>
+        </div>
+      </div>
+
+      <!-- 進度條 -->
+      <div class="w-full bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden">
+        <div id="examProgressBar" class="bg-teal-500 h-1.5 transition-all duration-300 rounded-full" style="width: 0%"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容區 -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+      
+      <!-- 左側/中間：題型題目卡片 -->
+      <div class="lg:col-span-3 space-y-4">
+
+        <!-- 狀態與篩選橫條 -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3 text-xs sm:text-sm">
+            <span class="text-slate-500 font-medium">當前進度：</span>
+            <span id="answeredCountBadge" class="bg-teal-50 text-teal-700 font-semibold px-2 py-0.5 rounded border border-teal-200">
+              已答 0 / 25
+            </span>
+            <span id="flaggedCountBadge" class="bg-amber-50 text-amber-700 font-semibold px-2 py-0.5 rounded border border-amber-200">
+              標記 0
+            </span>
+          </div>
+
+          <!-- 篩選器 -->
+          <div class="flex items-center gap-2">
+            <label id="wrongOnlyFilterWrapper" class="hidden items-center text-xs font-medium text-slate-600 cursor-pointer">
+              <input type="checkbox" id="wrongOnlyFilter" onchange="toggleFilterWrongOnly(this.checked)" class="rounded text-teal-600 focus:ring-teal-500 mr-1.5">
+              只檢視做錯題目
+            </label>
+            <button onclick="resetExam()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition font-medium">
+              重設重考
+            </button>
+          </div>
+        </div>
+
+        <!-- 核心試題卡片容器 -->
+        <div id="questionCardContainer" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 transition-all">
+          <!-- JS 動態渲染當前題目 -->
+        </div>
+
+        <!-- 導航控制列 -->
+        <div class="flex items-center justify-between pt-2">
+          <button id="prevBtn" onclick="navigateQuestion(-1)" class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+            ← 上一題
+          </button>
+          <div class="flex items-center gap-2">
+            <button id="flagCurrentBtn" onclick="toggleFlagCurrent()" class="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 transition">
+              ⭐ 標記此題
+            </button>
+            <button id="submitExamBtn" onclick="confirmSubmitExam()" class="px-5 py-2 bg-teal-600 text-white text-sm font-bold rounded-xl hover:bg-teal-700 transition shadow-md">
+              提交試卷
+            </button>
+          </div>
+          <button id="nextBtn" onclick="navigateQuestion(1)" class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+            下一題 →
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 右側：題目調色盤 (Question Palette) -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sticky top-24">
+          <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
+            <span>試題導航網格</span>
+            <span class="text-xs text-slate-400 font-normal">可直接點擊切換</span>
+          </h3>
+
+          <!-- 圖例 -->
+          <div class="grid grid-cols-3 gap-1 mb-4 text-[11px] text-slate-500">
+            <div class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-slate-200 mr-1.5"></span>未作答</div>
+            <div class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-teal-600 mr-1.5"></span>已作答</div>
+            <div class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 mr-1.5"></span>有標記</div>
+          </div>
+
+          <!-- 1-25 題號按鈕格 -->
+          <div id="paletteGrid" class="grid grid-cols-5 gap-2">
+            <!-- 由 JS 動態生成 -->
+          </div>
+
+          <!-- 模式提示說明 -->
+          <div class="mt-5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-500 space-y-1.5">
+            <p class="font-semibold text-slate-700">💡 溫馨提醒：</p>
+            <p>• 點擊頂部「即時刷題」可在選擇後立即查看答案與解析。</p>
+            <p>• 鍵盤支援快速選擇：按 <kbd class="px-1 py-0.5 bg-white border rounded">A</kbd>, <kbd class="px-1 py-0.5 bg-white border rounded">B</kbd>, <kbd class="px-1 py-0.5 bg-white border rounded">C</kbd>, <kbd class="px-1 py-0.5 bg-white border rounded">D</kbd> 作答；方向鍵切換前後題。</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 底部版權宣告 -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-400">
+    ERB 物理治療助理基礎證書課程 • 仿真評估筆試系統 (共 25 題，滿分 25 分，及格標準 12.5 分)
+  </footer>
+
+  <!-- 彈窗：成績結算報告 (Modal) -->
+  <div id="resultModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center animate-in fade-in zoom-in duration-200">
+      <div id="modalIconContainer" class="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-3xl shadow-inner">
+        <!-- JS 動態插入獎牌或警示 -->
+      </div>
+      <h2 id="modalTitle" class="text-2xl font-bold text-slate-900 mb-1">測驗成績</h2>
+      <p id="modalSubtitle" class="text-sm text-slate-500 mb-6">您的持續評估筆試考核表現</p>
+
+      <!-- 核心成績卡片 -->
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6 grid grid-cols-2 gap-3 text-left">
+        <div>
+          <div class="text-xs text-slate-400">總得分</div>
+          <div class="text-2xl font-extrabold text-teal-600" id="reportScore">0 / 25</div>
+        </div>
+        <div>
+          <div class="text-xs text-slate-400">評估結果</div>
+          <div class="text-lg font-bold" id="reportPassStatus">-</div>
+        </div>
+        <div>
+          <div class="text-xs text-slate-400">正確率</div>
+          <div class="text-base font-semibold text-slate-700" id="reportAccuracy">0%</div>
+        </div>
+        <div>
+          <div class="text-xs text-slate-400">測驗耗時</div>
+          <div class="text-base font-semibold text-slate-700" id="reportTimeSpent">00:00</div>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <button onclick="closeResultModalAndReview()" class="w-full py-2.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition shadow">
+          查看詳細題解與檢討
+        </button>
+        <button onclick="resetExam()" class="w-full py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition">
+          重新測驗一次
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 側邊抽屜：必背考點速查 (Drawer) -->
+  <div id="cheatsheetDrawer" class="fixed inset-y-0 right-0 max-w-lg w-full bg-white shadow-2xl z-50 transform translate-x-full transition duration-300 ease-in-out border-l border-slate-200 flex flex-col">
+    <div class="p-4 bg-navy-900 text-white flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-teal-400 text-lg">📋</span>
+        <h3 class="font-bold text-base">高頻考點 & 必背數值速查</h3>
+      </div>
+      <button onclick="toggleCheatsheet(false)" class="text-slate-400 hover:text-white text-xl">✕</button>
+    </div>
+    
+    <div class="p-6 overflow-y-auto flex-grow custom-scrollbar space-y-6 text-xs text-slate-700">
+      
+      <!-- 生命表徵速查 -->
+      <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50">
+        <h4 class="font-bold text-teal-800 text-sm mb-2">1. 生命表徵正常標準值</h4>
+        <ul class="space-y-1 leading-relaxed">
+          <li>• <strong>體溫 (T)：</strong>36.1–37.5°C（肛探最準發燒>38°C；耳探需往後上方拉直耳道；水銀甩至35°C以下）。</li>
+          <li>• <strong>脈搏 (P)：</strong>成人 60–100 次/分（>100 心搏過速；<60 心搏過慢）。</li>
+          <li>• <strong>呼吸 (RR)：</strong>成人 16–20 次/分；嬰兒 30–40 次/分。</li>
+          <li>• <strong>血壓 (BP)：</strong>理想 &lt;120/&lt;80 mmHg；高血壓前期 120-139/80-89；袖帶需覆蓋上臂長度 2/3。</li>
+          <li>• <strong>血氧 (SpO2)：</strong>正常 97–99%（&lt;90% 屬低血氧；抽煙/一氧化碳/嚴重貧血數值可能假性偏高或正常）。</li>
+        </ul>
+      </div>
+
+      <!-- BMI 亞太標準 -->
+      <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50">
+        <h4 class="font-bold text-teal-800 text-sm mb-2">2. 亞太區成年人 BMI 指標</h4>
+        <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+          <div class="p-1.5 bg-white rounded border">過輕：&lt; 18.5</div>
+          <div class="p-1.5 bg-emerald-50 text-emerald-800 rounded border border-emerald-200">正常：18.5 – 22.9</div>
+          <div class="p-1.5 bg-amber-50 text-amber-800 rounded border border-amber-200">過重：23.0 – 24.9</div>
+          <div class="p-1.5 bg-red-50 text-red-800 rounded border border-red-200">肥胖：25.0 – 29.9</div>
+          <div class="col-span-2 p-1.5 bg-rose-100 text-rose-900 rounded font-semibold border border-rose-300">非常肥胖：≥ 30.0</div>
+        </div>
+      </div>
+
+      <!-- 阻力顏色與器材等級 -->
+      <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50">
+        <h4 class="font-bold text-teal-800 text-sm mb-2">3. 阻力顏色排序（弱 → 強）</h4>
+        <p class="mb-1"><strong>• 運動橡筋帶 (Theraband)：</strong><br>黃 &lt; 紅 &lt; 綠 &lt; 藍 &lt; 黑</p>
+        <p><strong>• 手部泥膠 (Putty)：</strong><br>黃 &lt; 橙 &lt; 綠 &lt; 藍 &lt; 紫（紫最強）</p>
+      </div>
+
+      <!-- 儀器關鍵操作與禁忌 -->
+      <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50">
+        <h4 class="font-bold text-teal-800 text-sm mb-2">4. 儀器核心操作與鐵則</h4>
+        <ul class="space-y-1.5 leading-relaxed">
+          <li>• <strong>短波治療 (SWD)：</strong>絕對不可有任何金屬（手機、金屬椅等），否則嚴重燒傷！</li>
+          <li>• <strong>超聲波 (US)：</strong>切勿空載開機（必須有導電啫喱/水）；輸出頭必須在患處持續打圈。</li>
+          <li>• <strong>干擾波 (IFT)：</strong>兩個中頻交變電流聚合，電極必須「對角交叉」擺放。</li>
+          <li>• <strong>蠟療 (Wax)：</strong>溫度 52–55°C，浸 5–8 層，敷 15–20 分鐘。</li>
+          <li>• <strong>電療善後順序：</strong>治療結束「先關電源，後拆電極」。</li>
+        </ul>
+      </div>
+
+      <!-- 臨床實務與法規 -->
+      <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50">
+        <h4 class="font-bold text-teal-800 text-sm mb-2">5. 臨床與法規必考要點</h4>
+        <ul class="space-y-1 leading-relaxed">
+          <li>• <strong>轉介：</strong>求診物理治療必須有醫生轉介信；助理不可自行診斷或私自建議處方。</li>
+          <li>• <strong>疏忽三要素：</strong>照顧責任、失責、造成損失（具因果關係）。</li>
+          <li>• <strong>性罪行查核：</strong>不涵蓋私人補習及志願工作者（義工）。</li>
+          <li>• <strong>偏癱轉移：</strong>輪椅泊在「健側」並鎖緊；病人用「健側手」支撐；坐穩後「先扣安全帶」。</li>
+          <li>• <strong>運動流程：</strong>熱身(10-15m) → 主題(20-30m) → 緩和(5m) → 伸展(5m)。</li>
+        </ul>
+      </div>
+
+    </div>
+    <div class="p-4 bg-slate-100 border-t border-slate-200">
+      <button onclick="toggleCheatsheet(false)" class="w-full py-2 bg-slate-800 text-white font-medium rounded-xl hover:bg-slate-700 transition">
+        關閉速查
+      </button>
+    </div>
+  </div>
+
+  <!-- JavaScript 核心邏輯 -->
+  <script>
+    // 25 題完整題庫
+    const questions = [
+      {
+        id: 1,
+        question: "根據香港現行法例及物理治療助理的專業守則，下列哪一項描述是正確的？",
+        options: {
+          A: "物理治療助理必須根據《輔助醫療業條例》（第359章）註冊方可執業",
+          B: "病人求診物理治療無需醫生轉介信，可直接由物理治療助理進行初步評估",
+          C: "當病人詢問其復康進度及檢查結果時，物理治療助理應轉交物理治療師負責講解分析",
+          D: "如物理治療師工作繁忙，有經驗的物理治療助理可自行為相熟病人處方熱敷治療"
+        },
+        answer: "C",
+        explanation: "【考點：行業法例與助理守則】物理治療師/職業治療師需在香港《輔助醫療業條例》下註冊，但物理治療助理「暫不受法例監管」；求診物理治療在現行法規下必須有醫生轉介信；講解分析復康進度是物理治療師的責任，助理嚴禁自行為病人診斷、詮釋檢查結果或私下處方任何治療。"
+      },
+      {
+        id: 2,
+        question: "在香港法律框架下，構成「疏忽（Negligence）」的三個基本因素包括「照顧責任」、「失責」以及下列哪一項？",
+        options: {
+          A: "蓄意傷害的動機",
+          B: "違反僱傭合約條款",
+          C: "造成損失（且失責與損害之間存在因果關係）",
+          D: "未有事先取得病人的書面同意"
+        },
+        answer: "C",
+        explanation: "【考點：疏忽的法律要素】構成民事疏忽的三大要素為：① 被告人負有法律承認的照顧責任（謹慎責任）；② 失責（行為謹慎程度低於合理標準）；③ 造成損失（原告受到的損害與失責之間存在合理的因果緊密聯繫）。"
+      },
+      {
+        id: 3,
+        question: "根據香港警務處的「性罪行定罪紀錄查核」機制，下列哪一類人士並**不**涵蓋在查核機制的申請範圍內？",
+        options: {
+          A: "特殊學校聘請的復康助理",
+          B: "外判服務機構派往殘疾人士院舍工作的合約僱員",
+          C: "兒科病房新入職的醫護支援人員",
+          D: "在社區中心提供義務服務的志願工作者（義工）"
+        },
+        answer: "D",
+        explanation: "【考點：性罪行定罪紀錄查核機制】該機制旨在保護兒童及精神上無行為能力人士，適用於機構的僱員、合約工及外判人員。教材特別強調陷阱：此機制目前「並不涵蓋私人補習導師及志願工作者（義工）」。"
+      },
+      {
+        id: 4,
+        question: "在標準的「解剖學姿勢（Anatomical Position）」中，人體上肢與手掌應處於什麼位置？",
+        options: {
+          A: "上肢垂於身體兩側，掌心向後，拇指向內側",
+          B: "上肢垂於身體兩側，掌心向前，拇指在外側",
+          C: "上肢垂於身體兩側，掌心貼向大腿外側，拇指向前",
+          D: "雙手交叉放於胸前，掌心向內"
+        },
+        answer: "B",
+        explanation: "【考點：標準解剖學姿勢】解剖姿勢是描述人體結構的唯一標準基準：身體直立面向前方、上肢垂下在身體兩側、掌心向前、拇指在外側、雙足並立且足尖向前。"
+      },
+      {
+        id: 5,
+        question: "將人體縱向切分為「前、後」兩大部份的身體切面，在解剖學上稱為什麼？",
+        options: {
+          A: "矢狀面（Sagittal Plane）",
+          B: "水平面（Transverse Plane）",
+          C: "冠狀面（Coronal Plane）",
+          D: "橫切面（Cross Plane）"
+        },
+        answer: "C",
+        explanation: "【考點：人體三大剖面】① 冠狀面（Coronal Plane）：將人體切為前、後兩部份；② 矢狀面（Sagittal Plane）：將人體切為左、右兩部份；③ 水平面（Transverse Plane）：將人體橫切為上、下兩部份。"
+      },
+      {
+        id: 6,
+        question: "成年人的脊柱（椎骨）由多少節骨頭組成？當中頸椎、胸椎及腰椎的數目分別是多少？",
+        options: {
+          A: "共 33 節（頸椎 7 塊、胸椎 12 塊、腰椎 5 塊）",
+          B: "共 26 節（頸椎 7 塊、胸椎 12 塊、腰椎 5 塊）",
+          C: "共 26 節（頸椎 8 塊、胸椎 12 塊、腰椎 4 塊）",
+          D: "共 31 節（頸椎 8 塊、胸椎 12 塊、腰椎 5 塊）"
+        },
+        answer: "B",
+        explanation: "【考點：脊柱結構與數值】成人的脊椎骨共 26 節：頸椎 7 塊、胸椎 12 塊、腰椎 5 塊、骶骨 1 塊（5塊融合）、尾骨 1 塊（4塊融合）。注意：兒童青少年未融合前為 33 塊；脊髓發出的脊神經才是 31 對。"
+      },
+      {
+        id: 7,
+        question: "有關人體心肺循環系統的構造與功能，下列哪一項描述是正確的？",
+        options: {
+          A: "左肺有 3 片肺葉，右肺有 2 片肺葉",
+          B: "吸氣時橫膈膜放鬆，令胸腔壓力減少以吸入空氣",
+          C: "大循環（體循環）是指含氧血液由左心室經主動脈輸出至全身器官，再經腔靜脈流回右心房",
+          D: "肺動脈內流動的是充滿氧氣的血液，負責直接供應營養給心肌"
+        },
+        answer: "C",
+        explanation: "【考點：循環與呼吸生理】大循環：左心室（含氧血）→ 主動脈 → 全身微血管 → 腔靜脈 → 右心房。錯誤辨析：左肺有 2 片肺葉、右肺有 3 片肺葉；吸氣時橫膈膜是「收縮」下沉使胸腔擴大負壓；肺動脈流的是缺氧血，供應心肌的是冠狀動脈。"
+      },
+      {
+        id: 8,
+        question: "下列哪一組關節屬於活動幅度最大、能作屈、伸、內收、外展、環轉和旋轉運動的「球窩關節（Ball-and-socket joint）」？",
+        options: {
+          A: "膝關節、肘關節",
+          B: "肩關節、髖關節",
+          C: "大拇指關節、腕關節",
+          D: "第一及第二節頸椎間關節"
+        },
+        answer: "B",
+        explanation: "【考點：滑膜關節分類】肩關節與髖關節為典型的球窩關節，活動度最大；膝、肘關節為鉸鏈關節（Hinge）；拇指為鞍狀關節（Saddle）；寰樞關節（頸椎1-2節）為車軸關節（Pivot）。"
+      },
+      {
+        id: 9,
+        question: "當病人進行手肘彎舉啞鈴動作，在「慢慢放下啞鈴」的過程中，其肱二頭肌在產生張力的同時長度增加（拉長）。這種肌肉收縮型態稱為什麼？",
+        options: {
+          A: "等長收縮（Isometric Contraction）",
+          B: "等張向心收縮（Concentric Contraction）",
+          C: "等張離心收縮（Eccentric Contraction）",
+          D: "等速收縮（Isokinetic Contraction）"
+        },
+        answer: "C",
+        explanation: "【考點：肌纖維收縮型態】等張收縮中，肌肉長度縮短為「向心收縮」；肌肉在產生張力對抗阻力時被拉長則為「離心收縮（Eccentric）」。等長收縮長度不變；等速收縮需特殊儀器（如Cybex）固定速度。"
+      },
+      {
+        id: 10,
+        question: "王先生 50 歲，近日進食大量海鮮、動物內臟及飲酒後，右腳大拇趾（腳趾公）關節突然出現劇烈紅、腫、熱、痛。他最可能患上下列哪種關節疾病？",
+        options: {
+          A: "退化性關節炎（Osteoarthritis）",
+          B: "類風濕性關節炎（Rheumatoid Arthritis）",
+          C: "痛風症（Gouty Arthritis）",
+          D: "狹窄性拇指肌腱滑膜炎"
+        },
+        answer: "C",
+        explanation: "【考點：痛風臨床特徵】痛風因攝取過量高普林/嘌呤食物（酒、內臟、貝類海鮮）轉化為尿酸，結晶沉積於關節。最常急性發作於中年男性的「大拇趾關節」，伴隨劇烈紅腫發熱。"
+      },
+      {
+        id: 11,
+        question: "陳女士因工作需要長時間打字，近日經常感到右手拇指、食指和中指麻痺，敲打手腕時更有觸電感覺，醫生診斷為「腕管綜合症（Carpal Tunnel Syndrome）」。此病症主要是因為哪一條神經受到壓迫所致？",
+        options: {
+          A: "尺神經（Ulnar Nerve）",
+          B: "橈神經（Radial Nerve）",
+          C: "正中神經（Median Nerve）",
+          D: "坐骨神經（Sciatic Nerve）"
+        },
+        answer: "C",
+        explanation: "【考點：腕管綜合症解剖】腕管由骨骼與韌帶圍成，通道狹窄，肌腱腫脹時會壓迫穿過其中的「正中神經（Median Nerve）」，引致拇指、食指、中指感覺障礙及後期大魚際肌萎縮。"
+      },
+      {
+        id: 12,
+        question: "有關「柏金遜症（Parkinsonism）」與「認知障礙症（Dementia）」的比較，下列哪一項描述是正確的？",
+        options: {
+          A: "柏金遜症是由於腦幹內「黑質」退化，導致神經傳導物質「多巴胺」分泌不足所致",
+          B: "絕大多數柏金遜症患者在發病初期已完全喪失認知及記憶能力",
+          C: "阿爾茲海默氏症患者的退化過程主要呈「梯級式衰退」",
+          D: "傳統精神科藥物能有效減輕柏金遜症患者的肌肉僵硬及手腳震顫徵狀"
+        },
+        answer: "A",
+        explanation: "【考點：神經退化疾病對比】柏金遜症成因為腦幹「黑質」退化缺乏多巴胺，大部分患者早期思維認知正常；阿爾茲海默氏症呈「漸進式衰退」，多發梗塞性（血管性）痴呆才呈「梯級式衰退」；傳統精神科藥物大多會加劇柏金遜症狀，不適用。"
+      },
+      {
+        id: 13,
+        question: "在搬運重物時，人體脊椎哪一個位置所承受的壓力最大，受傷機會亦最高（約佔 95%）？",
+        options: {
+          A: "頸椎第 5 至 7 節（C5–C7）",
+          B: "胸椎第 10 至 12 節（T10–T12）",
+          C: "腰椎第 1 至 2 節（L1–L2）",
+          D: "腰椎第 3 至 5 節（L3–L5）"
+        },
+        answer: "D",
+        explanation: "【考點：腰背痛與力學】提舉重物時，下背部承擔人體大部分重力與壓力，其中「腰椎第 3 至 5 節（L3–L5）」承受壓力最大，受傷與勞損比率高達約 95%。"
+      },
+      {
+        id: 14,
+        question: "物理治療助理為病人準備進行「干擾波電療（IFT）」時，下列哪一項操作程序是正確的？",
+        options: {
+          A: "兩組共四個吸盤電極必須以平行並列的方式擺放於患處同一側",
+          B: "兩組電極需要以對角交叉方式（Crisscrossed Pattern）擺放，使電流在深層組織聚合",
+          C: "治療時應先開啟最大輸出電量，再貼上電極吸盤",
+          D: "治療完成後，應先替病人拔除身上的吸盤電極，然後才關掉電療機電源"
+        },
+        answer: "B",
+        explanation: "【考點：IFT 操作要點與電療安全】干擾波由兩個中頻電流交叉干擾產生，電極必須採「對角交叉（Crisscrossed）」擺放；治療完成後，必須「先關機，後拆除電極/吸盤」，切勿帶電拔除以免病人觸電受驚。"
+      },
+      {
+        id: 15,
+        question: "有關「超聲波治療儀（Ultrasound Therapy）」的操作及注意事項，下列哪一項是**錯誤**的？",
+        options: {
+          A: "在正式接觸病人皮膚前，可先在沒有塗上導電啫喱的情況下開啟輸出頭預熱 5 分鐘",
+          B: "治療時必須將輸出頭在患處不斷打圈移動，以免組織急劇升溫引致燒傷",
+          C: "正常情況下，患者在超聲波治療期間應沒有特別感覺",
+          D: "超聲波輸出頭內含晶體，極易因碰撞或跌撞而損壞報廢，如不慎跌撞必須通知治療師檢查"
+        },
+        answer: "A",
+        explanation: "【考點：超聲波操作鐵則】超聲波輸出頭切勿在「沒有導電啫喱或水」的空載情況下開機，否則晶體無法傳導聲波會迅速積熱而徹底損毀報廢！治療時必須以打圈手法移動防深層灼傷。"
+      },
+      {
+        id: 16,
+        question: "物理治療師處方「短波治療（SWD）」予一名慢性膝關節痛患者。治療助理在準備工作時，必須特別注意下列哪一項禁忌？",
+        options: {
+          A: "患者在治療前 2 小時內不可進食",
+          B: "必須為患者及自己戴上專用防激光護目眼罩",
+          C: "患者體內外、治療範圍內不可有任何金屬物品（包括手機、手錶及有金屬部件的座椅），以免引致嚴重燒傷",
+          D: "治療部位必須先浸泡於 52–55°C 的軟蠟中"
+        },
+        answer: "C",
+        explanation: "【考點：短波電磁波熱療禁忌】短波屬高頻電磁場，體內（如心臟起搏器、人工關節、金屬骨釘）或體外（手錶、飾物、手機、有金屬的座椅）的金屬會在交變磁場中產生高熱，極易引致嚴重內部燒傷！"
+      },
+      {
+        id: 17,
+        question: "治療助理協助關節僵硬的患者進行「蠟療（Wax Therapy）」時，下列哪一項標準程序是正確的？",
+        options: {
+          A: "蠟療機應設定在 70–80°C，患者將手浸入 1 次後立即取出",
+          B: "測試蠟溫在 52–55°C 之間，清洗患處後浸 5–8 層蠟（每次待前一層變白稍乾才浸下一層），完成後套上膠袋及棉套保溫敷 15–20 分鐘",
+          C: "蠟療最適合用於急性扭傷、紅腫發熱或有開放性傷口的手部關節",
+          D: "每次加蠟時應趁前一層蠟完全未乾時快速連續浸入，並敷 60 分鐘以上"
+        },
+        answer: "B",
+        explanation: "【考點：蠟療標準操作】標準蠟溫為 52–55°C；洗淨後浸 5–8 層（待前層變白凝固稍乾才浸下一層，防熱蠟燙傷）；套膠袋和棉套保溫敷 15–20 分鐘。急性發炎及有傷口者嚴禁熱療。"
+      },
+      {
+        id: 18,
+        question: "在物理治療部常用的運動器具中，「運動橡筋帶（Theraband）」與「訓練泥膠（Putty）」均以不同顏色代表不同阻力。下列哪一項關於阻力由**弱至強**的排列是正確的？",
+        options: {
+          A: "運動橡筋帶：黑 < 藍 < 綠 < 紅 < 黃",
+          B: "運動橡筋帶：黃 < 紅 < 綠 < 藍 < 黑",
+          C: "訓練泥膠：紫 < 藍 < 綠 < 橙 < 黃",
+          D: "訓練泥膠：紅 < 黃 < 藍 < 黑 < 銀"
+        },
+        answer: "B",
+        explanation: "【考點：器材阻力顏色代碼】運動橡筋帶阻力由弱至強為：黃 < 紅 < 綠 < 藍 < 黑；手部訓練泥膠阻力由弱至強為：黃 < 橙 < 綠 < 藍 < 紫（紫最強）。"
+      },
+      {
+        id: 19,
+        question: "治療助理為一名成年病人量度生命表徵，下列哪一組讀數全部處於**正常/理想範圍**內？",
+        options: {
+          A: "耳探體溫 38.5°C、脈搏 80 次/分、呼吸 18 次/分、血壓 115/75 mmHg、血氧 98%",
+          B: "口探體溫 36.8°C、脈搏 72 次/分、呼吸 18 次/分、血壓 118/76 mmHg、血氧 98%",
+          C: "腋探體溫 36.5°C、脈搏 115 次/分、呼吸 28 次/分、血壓 145/95 mmHg、血氧 92%",
+          D: "耳探體溫 37.0°C、脈搏 50 次/分、呼吸 12 次/分、血壓 165/105 mmHg、血氧 88%"
+        },
+        answer: "B",
+        explanation: "【考點：生命表徵正常標準值】成人正常標準：體溫 36.1–37.5°C；脈搏 60–100 次/分；呼吸 16–20 次/分；理想血壓 <120/<80 mmHg；血氧 97–99%。選項 B 每一項數值均完美符合標準。"
+      },
+      {
+        id: 20,
+        question: "使用血含氧量測量機（Pulse Oximeter）夾在病人手指量度血氧飽和度（SpO2）時，下列哪一種情況會令讀數受到干擾或出現假性結果？",
+        options: {
+          A: "病人的血含氧量低於 90% 時，表示出現低血氧症，口唇可能發紫",
+          B: "將感應器夾在正在使用血壓計量度血壓的同一側手臂手指上，會影響讀數準確性",
+          C: "剛抽煙、一氧化碳中毒或嚴重貧血的患者，血氧機讀數可能會呈現假性偏高或正常值（如 100%）",
+          D: "以上皆是"
+        },
+        answer: "D",
+        explanation: "【考點：血氧機原理與干擾限制】血氧機利用紅光與紅外光吸收率計算帶氧血紅蛋白比例。同側手臂量血壓阻斷動脈血流；剛抽煙或一氧化碳中毒會使儀器誤判結合碳氧血紅素為帶氧血紅素；嚴重貧血者飽和度比例可能為100%但實際攜氧總量不足；SpO2 < 90% 為缺氧指徵。"
+      },
+      {
+        id: 21,
+        question: "李先生身高 1.70 米，體重 75 公斤，計算出其體重指標（BMI）約為 25.95。根據世界衛生組織（WHO）亞太地區的指引，李先生的體重屬於哪一個類別？",
+        options: {
+          A: "正常（18.5 – 22.9）",
+          B: "過重（23.0 – 24.9）",
+          C: "肥胖（25.0 – 29.9）",
+          D: "非常肥胖（≥ 30.0）"
+        },
+        answer: "C",
+        explanation: "【考點：BMI 亞太標準分級】BMI = 75 / (1.7^2) ≈ 25.95。世衛亞太指引標準：過輕 < 18.5；正常 18.5–22.9；過重 23.0–24.9；肥胖 25.0–29.9；非常肥胖 ≥ 30.0。故 25.95 屬於「肥胖」。"
+      },
+      {
+        id: 22,
+        question: "為糖尿病患者安排運動訓練以控制血糖時，下列哪一項原則是**正確**的？",
+        options: {
+          A: "由於運動增加胰島素敏感度的效果會在 48–72 小時後逐漸減弱，故應最少隔天進行運動（最理想每週 5 次）",
+          B: "患有嚴重糖尿病視網膜病變或血壓控制極不理想的患者，應優先自行進行高強度舉重（抗阻）訓練",
+          C: "進行抗阻力訓練用力時應緊閉呼吸（閉氣），以增強核心穩定度及降血糖效果",
+          D: "只要完成一次帶氧運動，其降血糖效果可維持一個月，故每月運動一次即可"
+        },
+        answer: "A",
+        explanation: "【考點：糖尿病運動處方與安全禁忌】運動帶來的胰島素敏感度提升會在 48–72 小時後消退，故必須最少隔天運動（建議每週 3-5 次）；進行力量訓練時「切忌用力時閉氣」，否則會引致血壓急升；視網膜病變或血壓未受控者進行抗阻訓練具高出血風險，需專業評估。"
+      },
+      {
+        id: 23,
+        question: "物理治療助理帶領一個為時 45–60 分鐘的長者運動小組，其標準流程及時間分配應為下列哪一項？",
+        options: {
+          A: "主題運動（40 分鐘）→ 伸展運動（10 分鐘），長者無需進行熱身及緩和運動",
+          B: "熱身運動（約 10–15 分鐘）→ 主題運動（約 20–30 分鐘）→ 緩和運動（約 5 分鐘）→ 伸展運動及總結（約 5 分鐘）",
+          C: "劇烈阻力運動（30 分鐘）→ 熱身運動（15 分鐘），運動後應立即坐下完全靜止休息",
+          D: "伸展運動（30 分鐘）→ 緩和運動（20 分鐘）→ 主題運動（5 分鐘）"
+        },
+        answer: "B",
+        explanation: "【考點：運動小組標準四部曲】小組運動標準流程（45-60分鐘）：① 熱身（10–15分鐘，暖化軟組織）；② 主題運動（20–30分鐘，中度耐力/肌力）；③ 緩和運動（約5分鐘，使心率平伏，防突然停止）；④ 伸展運動及總結（約5分鐘，減少運動後酸痛）。"
+      },
+      {
+        id: 24,
+        question: "治療助理協助一名「右側偏癱（Right Hemiplegia）」病人由病床轉移至輪椅時，下列哪一項安全操作是**正確**的？",
+        options: {
+          A: "應將輪椅停泊在病人的「患側（右側）」，並無需鎖上輪轆以便隨時推動",
+          B: "指導病人用「健側手（左手）」扶床坐起及按住輪椅扶手，轉移前必須確保輪椅已鎖緊輪轆",
+          C: "助理在發力扶起病人時，應彎曲腰背、雙腿伸直，單靠腰部力量將病人拉起",
+          D: "病人坐上輪椅後，應先調校腳踏及整理衣服，最後離開病房前才扣上安全帶"
+        },
+        answer: "B",
+        explanation: "【考點：偏癱扶抱轉移實務鐵則】輪椅必須停泊於病人的「健側（左邊）」；轉移前必須確保「輪椅鎖緊輪轆」；指導病人用「健側手」發力支撐；助理發力時必須「保持腰背挺直、以大腿發力」防工傷；坐上輪椅後「必須先扣上安全帶」，再放回腳踏。"
+      },
+      {
+        id: 25,
+        question: "治療助理為仰臥在病床上的偏癱病人進行小腿「腓腸肌（Gastrocnemius）被動靜態伸展運動」時，下列哪一項做法是**正確**的？",
+        options: {
+          A: "讓病人的膝關節完全屈曲，然後快速來回作「動彈（Bouncing）」動作拉扯腳掌",
+          B: "確保病人患側膝關節保持伸直，手包著足跟並用前臂將腳掌緩慢推向足背屈曲（Dorsiflexion）至最大可承受幅度，維持 15–30 秒，重複 3–5 次",
+          C: "為求達到最佳拉筋效果，即使病人面露劇痛表情，仍應繼續用力強行下壓維持 5 分鐘",
+          D: "完成伸展離開病床時，應將床欄放下方便病人自行落床，且無需給予求助鐘"
+        },
+        answer: "B",
+        explanation: "【考點：被動伸展技巧與病人安全】腓腸肌跨越膝關節與足踝，伸展時必須「保持膝關節伸直」，手包足跟配合前臂施力增加「足背屈曲」；動作要緩慢平穩，嚴禁動彈彈跳動作；維持 15–30 秒，重複 3–5 次；注意病人表情避免劇痛；離開病床前必須「拉上床欄並給予求助鐘」。"
+      }
+    ];
+
+    // 全域狀態
+    let currentMode = 'exam'; // 'exam' 或 'practice'
+    let currentIndex = 0;
+    let userAnswers = {}; // { 1: 'C', 2: 'B', ... }
+    let flaggedQuestions = new Set();
+    let isSubmitted = false;
+    let timerSeconds = 30 * 60; // 30 分鐘
+    let timerInterval = null;
+    let isTimerRunning = true;
+    let filterWrongOnly = false;
+
+    // 初始化
+    window.onload = function() {
+      initApp();
+    };
+
+    function initApp() {
+      startTimer();
+      renderPalette();
+      renderCurrentQuestion();
+      updateHeaderProgress();
+
+      // 鍵盤監聽快捷鍵
+      document.addEventListener('keydown', (e) => {
+        const key = e.key.toUpperCase();
+        if (['A', 'B', 'C', 'D'].includes(key)) {
+          selectOption(key);
+        } else if (e.key === 'ArrowLeft') {
+          navigateQuestion(-1);
+        } else if (e.key === 'ArrowRight') {
+          navigateQuestion(1);
+        }
+      });
+    }
+
+    // 計時器邏輯
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!isTimerRunning || isSubmitted) return;
+        if (timerSeconds > 0) {
+          timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          alert('測驗時間到，系統將自動為您提交試卷！');
+          submitExam();
+        }
+      }, 1000);
+    }
+
+    function toggleTimer() {
+      isTimerRunning = !isTimerRunning;
+      document.getElementById('timerToggleBtn').textContent = isTimerRunning ? '⏸️' : '▶️';
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timerSeconds / 60);
+      const secs = timerSeconds % 60;
+      document.getElementById('timerText').textContent = 
+        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    // 模式切換
+    function switchMode(mode) {
+      currentMode = mode;
+      const examBtn = document.getElementById('modeExamBtn');
+      const practiceBtn = document.getElementById('modePracticeBtn');
+
+      if (mode === 'exam') {
+        examBtn.className = "px-3 py-1.5 rounded-md transition duration-150 bg-teal-600 text-white shadow-sm";
+        practiceBtn.className = "px-3 py-1.5 rounded-md transition duration-150 text-slate-300 hover:text-white";
+      } else {
+        practiceBtn.className = "px-3 py-1.5 rounded-md transition duration-150 bg-teal-600 text-white shadow-sm";
+        examBtn.className = "px-3 py-1.5 rounded-md transition duration-150 text-slate-300 hover:text-white";
+      }
+      renderCurrentQuestion();
+      renderPalette();
+    }
+
+    // 渲染題目導航網格
+    function renderPalette() {
+      const palette = document.getElementById('paletteGrid');
+      palette.innerHTML = '';
+
+      questions.forEach((q, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = q.id;
+        
+        let baseClass = "h-9 w-full rounded-lg font-semibold text-xs transition duration-150 flex items-center justify-center relative ";
+
+        // 判定外觀顏色
+        if (isSubmitted) {
+          const userAns = userAnswers[q.id];
+          if (userAns === q.answer) {
+            baseClass += "bg-emerald-100 text-emerald-800 border border-emerald-300 ";
+          } else {
+            baseClass += "bg-rose-100 text-rose-800 border border-rose-300 ";
+          }
+        } else if (currentMode === 'practice' && userAnswers[q.id]) {
+          if (userAnswers[q.id] === q.answer) {
+            baseClass += "bg-emerald-100 text-emerald-800 border border-emerald-300 ";
+          } else {
+            baseClass += "bg-rose-100 text-rose-800 border border-rose-300 ";
+          }
+        } else {
+          if (userAnswers[q.id]) {
+            baseClass += "bg-teal-600 text-white shadow ";
+          } else {
+            baseClass += "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 ";
+          }
+        }
+
+        // 當前題目外框光暈
+        if (idx === currentIndex) {
+          baseClass += " ring-2 ring-teal-500 ring-offset-2 ";
+        }
+
+        btn.className = baseClass;
+
+        // 若有標記
+        if (flaggedQuestions.has(q.id)) {
+          const flagDot = document.createElement('span');
+          flagDot.className = "absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-400";
+          btn.appendChild(flagDot);
+        }
+
+        btn.onclick = () => {
+          currentIndex = idx;
+          renderCurrentQuestion();
+          renderPalette();
+        };
+
+        palette.appendChild(btn);
+      });
+    }
+
+    // 渲染當前試題
+    function renderCurrentQuestion() {
+      const container = document.getElementById('questionCardContainer');
+      const q = questions[currentIndex];
+      const selected = userAnswers[q.id];
+      const showAnswer = isSubmitted || (currentMode === 'practice' && selected);
+
+      let optionsHtml = '';
+      ['A', 'B', 'C', 'D'].forEach(letter => {
+        const text = q.options[letter];
+        let optionClass = "flex items-start p-4 rounded-xl border text-sm transition duration-150 cursor-pointer ";
+        let badgeClass = "w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs mr-3 shrink-0 ";
+
+        if (showAnswer) {
+          if (letter === q.answer) {
+            optionClass += "bg-emerald-50 border-emerald-500 text-emerald-900 font-semibold ring-1 ring-emerald-500";
+            badgeClass += "bg-emerald-600 text-white";
+          } else if (selected === letter) {
+            optionClass += "bg-rose-50 border-rose-400 text-rose-900";
+            badgeClass += "bg-rose-600 text-white";
+          } else {
+            optionClass += "bg-slate-50/60 border-slate-200 text-slate-400 opacity-70 cursor-not-allowed";
+            badgeClass += "bg-slate-200 text-slate-600";
+          }
+        } else {
+          if (selected === letter) {
+            optionClass += "bg-teal-50/80 border-teal-600 text-teal-900 shadow-sm ring-1 ring-teal-500";
+            badgeClass += "bg-teal-600 text-white";
+          } else {
+            optionClass += "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300";
+            badgeClass += "bg-slate-100 text-slate-700";
+          }
+        }
+
+        optionsHtml += `
+          <div onclick="selectOption('${letter}')" class="${optionClass}">
+            <span class="${badgeClass}">${letter}</span>
+            <span class="flex-grow pt-0.5">${text}</span>
+            ${showAnswer && letter === q.answer ? '<span class="text-emerald-600 text-xs font-bold shrink-0 ml-2">✓ 正確答案</span>' : ''}
+            ${showAnswer && selected === letter && letter !== q.answer ? '<span class="text-rose-600 text-xs font-bold shrink-0 ml-2">✗ 你的選擇</span>' : ''}
+          </div>
+        `;
+      });
+
+      // 解析卡片
+      let explanationHtml = '';
+      if (showAnswer) {
+        const isCorrect = selected === q.answer;
+        explanationHtml = `
+          <div class="mt-6 p-4 md:p-5 rounded-xl border ${isCorrect ? 'bg-emerald-50/60 border-emerald-200' : 'bg-amber-50/70 border-amber-200'}">
+            <div class="flex items-center gap-2 mb-2 font-bold text-sm ${isCorrect ? 'text-emerald-800' : 'text-amber-800'}">
+              <span>${isCorrect ? '🎉 回答正確！' : '⚠️ 需加強溫習！'}</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-white font-medium border ${isCorrect ? 'border-emerald-300 text-emerald-700' : 'border-amber-300 text-amber-700'}">
+                正確答案：${q.answer}
+              </span>
+            </div>
+            <div class="text-xs sm:text-sm leading-relaxed text-slate-700">
+              ${q.explanation}
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold tracking-wider text-teal-600 uppercase bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-md">
+              Question ${q.id} of 25
+            </span>
+            ${flaggedQuestions.has(q.id) ? '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">⭐ 已標記</span>' : ''}
+          </div>
+          <span class="text-xs text-slate-400">1 分 / 選擇題</span>
+        </div>
+
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-snug mb-5">
+          ${q.question}
+        </h2>
+
+        <div class="space-y-3">
+          ${optionsHtml}
+        </div>
+
+        ${explanationHtml}
+      `;
+
+      // 更新按鈕狀態
+      document.getElementById('prevBtn').disabled = currentIndex === 0;
+      document.getElementById('nextBtn').disabled = currentIndex === questions.length - 1;
+      
+      const flagBtn = document.getElementById('flagCurrentBtn');
+      if (flaggedQuestions.has(q.id)) {
+        flagBtn.className = "px-4 py-2 border border-amber-400 bg-amber-50 text-amber-800 text-sm font-semibold rounded-xl transition";
+        flagBtn.textContent = "⭐ 取消標記";
+      } else {
+        flagBtn.className = "px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-amber-50 hover:text-amber-700 transition";
+        flagBtn.textContent = "⭐ 標記此題";
+      }
+    }
+
+    // 選擇答案
+    function selectOption(letter) {
+      if (isSubmitted) return; // 交卷後不能改
+      const q = questions[currentIndex];
+      userAnswers[q.id] = letter;
+      
+      updateHeaderProgress();
+      renderCurrentQuestion();
+      renderPalette();
+    }
+
+    // 導航上下題
+    function navigateQuestion(step) {
+      const newIndex = currentIndex + step;
+      if (newIndex >= 0 && newIndex < questions.length) {
+        currentIndex = newIndex;
+        renderCurrentQuestion();
+        renderPalette();
+      }
+    }
+
+    // 標記功能
+    function toggleFlagCurrent() {
+      const qId = questions[currentIndex].id;
+      if (flaggedQuestions.has(qId)) {
+        flaggedQuestions.delete(qId);
+      } else {
+        flaggedQuestions.add(qId);
+      }
+      renderCurrentQuestion();
+      renderPalette();
+      updateHeaderProgress();
+    }
+
+    // 更新頂部進度
+    function updateHeaderProgress() {
+      const answeredCount = Object.keys(userAnswers).length;
+      const progressPercent = (answeredCount / questions.length) * 100;
+      document.getElementById('examProgressBar').style.width = `${progressPercent}%`;
+      document.getElementById('answeredCountBadge').textContent = `已答 ${answeredCount} / 25`;
+      document.getElementById('flaggedCountBadge').textContent = `標記 ${flaggedQuestions.size}`;
+    }
+
+    // 提交試卷確認
+    function confirmSubmitExam() {
+      const answeredCount = Object.keys(userAnswers).length;
+      if (answeredCount < questions.length) {
+        const remaining = questions.length - answeredCount;
+        if (!confirm(`您還有 ${remaining} 條題目未作答！確定要提前交卷並查看評估成績嗎？`)) {
+          return;
+        }
+      }
+      submitExam();
+    }
+
+    // 結算試卷
+    function submitExam() {
+      isSubmitted = true;
+      let score = 0;
+
+      questions.forEach(q => {
+        if (userAnswers[q.id] === q.answer) {
+          score += 1;
+        }
+      });
+
+      const accuracy = ((score / questions.length) * 100).toFixed(1);
+      const isPassed = score >= 12.5;
+
+      // 停止計時並計算耗時
+      const timeSpentSec = (30 * 60) - timerSeconds;
+      const spentMin = Math.floor(timeSpentSec / 60);
+      const spentSec = timeSpentSec % 60;
+      const timeSpentStr = `${spentMin}分${spentSec}秒`;
+
+      // 填入成績彈窗
+      document.getElementById('reportScore').textContent = `${score} / 25`;
+      document.getElementById('reportAccuracy').textContent = `${accuracy}%`;
+      document.getElementById('reportTimeSpent').textContent = timeSpentStr;
+      
+      const statusElem = document.getElementById('reportPassStatus');
+      const iconElem = document.getElementById('modalIconContainer');
+
+      if (isPassed) {
+        statusElem.textContent = "及格 (PASSED) 🎉";
+        statusElem.className = "text-lg font-bold text-emerald-600";
+        iconElem.className = "w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-3xl shadow-inner bg-emerald-100 text-emerald-600";
+        iconElem.textContent = "🏆";
+      } else {
+        statusElem.textContent = "未達標 (FAILED) 需加倍努力";
+        statusElem.className = "text-lg font-bold text-rose-600";
+        iconElem.className = "w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-3xl shadow-inner bg-rose-100 text-rose-600";
+        iconElem.textContent = "📚";
+      }
+
+      // 顯示錯題篩選框、更改交卷按鈕
+      document.getElementById('wrongOnlyFilterWrapper').classList.remove('hidden');
+      document.getElementById('wrongOnlyFilterWrapper').classList.add('flex');
+      document.getElementById('submitExamBtn').classList.add('hidden');
+
+      // 彈窗展示
+      document.getElementById('resultModal').classList.remove('hidden');
+    }
+
+    // 關閉結算彈窗進入檢討模式
+    function closeResultModalAndReview() {
+      document.getElementById('resultModal').classList.add('hidden');
+      currentIndex = 0;
+      renderCurrentQuestion();
+      renderPalette();
+    }
+
+    // 錯題篩選功能
+    function toggleFilterWrongOnly(checked) {
+      filterWrongOnly = checked;
+      if (checked) {
+        // 跳轉到第一道錯題
+        const firstWrongIndex = questions.findIndex(q => userAnswers[q.id] !== q.answer);
+        if (firstWrongIndex !== -1) {
+          currentIndex = firstWrongIndex;
+        } else {
+          alert('恭喜您全對！沒有任何做錯的題目。');
+          document.getElementById('wrongOnlyFilter').checked = false;
+        }
+      }
+      renderCurrentQuestion();
+      renderPalette();
+    }
+
+    // 重設測驗
+    function resetExam() {
+      if (confirm('確定要清空所有作答記錄並重新開始測驗嗎？')) {
+        userAnswers = {};
+        flaggedQuestions.clear();
+        isSubmitted = false;
+        currentIndex = 0;
+        timerSeconds = 30 * 60;
+        isTimerRunning = true;
+        document.getElementById('resultModal').classList.add('hidden');
+        document.getElementById('wrongOnlyFilterWrapper').classList.add('hidden');
+        document.getElementById('wrongOnlyFilterWrapper').classList.remove('flex');
+        document.getElementById('wrongOnlyFilter').checked = false;
+        document.getElementById('submitExamBtn').classList.remove('hidden');
+        
+        startTimer();
+        updateHeaderProgress();
+        renderPalette();
+        renderCurrentQuestion();
+      }
+    }
+
+    // 速查抽屜開關
+    function toggleCheatsheet(show) {
+      const drawer = document.getElementById('cheatsheetDrawer');
+      if (show) {
+        drawer.classList.remove('translate-x-full');
+      } else {
+        drawer.classList.add('translate-x-full');
+      }
+    }
+  </script>
+</body>
+</html>
